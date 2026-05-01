@@ -42,7 +42,7 @@ const App = () => {
     const newEngine = new LogicEngine(rows, cols);
     setWorld(newWorld);
     setEngine(newEngine);
-    setLogs(["Game initialize hogya. Agent (1,1) pe hai."]);
+    setLogs(["Game initialized. Agent at (1,1)."]);
     setKbState([]);
     setInferenceSteps(0);
     setInferences({});
@@ -110,7 +110,7 @@ const App = () => {
         target = safeCells[0].split(',').map(Number);
       }
     } else {
-      setLogs(prev => [...prev, "Koi safe cell nhi bacha! Agent ruk gaya."]);
+      setLogs(prev => [...prev, "No guaranteed safe cells left to explore! Agent halts."]);
       setAutoPlay(false);
       return;
     }

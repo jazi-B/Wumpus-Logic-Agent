@@ -8,7 +8,7 @@ export class WumpusWorld {
     this.visited = new Set(['1,1']);
     this.gameOver = false;
     this.won = false;
-    this.log = ["Game start hogya hai. Agent (1,1) pe hai."];
+    this.log = ["Game started. Agent at (1,1)."];
 
     this.initializeHazards();
   }
@@ -62,18 +62,18 @@ export class WumpusWorld {
     // Agent ko move krwane wala function. Backtracking allowed hai.
     this.agent = { x, y };
     this.visited.add(`${x},${y}`);
-    this.log.push(`(${x},${y}) pe move kr gye.`);
+    this.log.push(`Moved to (${x},${y}).`);
 
     if (this.pits.has(`${x},${y}`)) {
       this.gameOver = true;
-      this.log.push("Pit main gir gye! Game Khatam.");
+      this.log.push("Fell into a pit! Game Over.");
     } else if (this.wumpus.x === x && this.wumpus.y === y) {
       this.gameOver = true;
-      this.log.push("Wumpus kha gya! Game Khatam.");
+      this.log.push("Eaten by the Wumpus! Game Over.");
     } else {
       let percepts = this.getPercepts(x, y);
-      if (percepts.breeze) this.log.push("Breeze feel ho rhi hai.");
-      if (percepts.stench) this.log.push("Stench (badboo) aa rhi hai.");
+      if (percepts.breeze) this.log.push("Felt a breeze.");
+      if (percepts.stench) this.log.push("Smelled a stench.");
     }
     
     // Check win condition: visited all safe cells?
