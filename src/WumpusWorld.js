@@ -2,19 +2,19 @@ export class WumpusWorld {
   constructor(rows, cols) {
     this.rows = rows;
     this.cols = cols;
-    this.agent = { x: 1, y: 1 }; // (col, row), 1-based
+    this.agent = { x: 1, y: 1 }; // Agent ki starting position (1,1) hai
     this.wumpus = null;
     this.pits = new Set();
     this.visited = new Set(['1,1']);
     this.gameOver = false;
     this.won = false;
-    this.log = ["Game started. Agent at (1,1)."];
+    this.log = ["Game start hogya hai. Agent (1,1) pe hai."];
 
     this.initializeHazards();
   }
 
   initializeHazards() {
-    // Place Wumpus randomly (not at 1,1)
+    // Wumpus ko random jagah pe rkh rhe hain (par 1,1 pe nhi)
     let wx, wy;
     do {
       wx = Math.floor(Math.random() * this.cols) + 1;
@@ -22,11 +22,11 @@ export class WumpusWorld {
     } while (wx === 1 && wy === 1);
     this.wumpus = { x: wx, y: wy };
 
-    // Place Pits randomly (approx 20% chance per cell, not at 1,1)
+    // Pits ko random jagah pe rkh rhe hain (20% chance har cell k liye)
     for (let x = 1; x <= this.cols; x++) {
       for (let y = 1; y <= this.rows; y++) {
         if (x === 1 && y === 1) continue;
-        if (x === wx && y === wy) continue; // no pit where wumpus is
+        if (x === wx && y === wy) continue; // Jahan wumpus hai wahan pit nhi ho skti
         if (Math.random() < 0.2) {
           this.pits.add(`${x},${y}`);
         }
@@ -59,22 +59,21 @@ export class WumpusWorld {
   moveAgent(x, y) {
     if (this.gameOver || this.won) return;
 
-    // Allow jumping to any cell to simulate backtracking across known safe visited cells
-    // (In a real physical robot it would walk back, but logically it's equivalent)
+    // Agent ko move krwane wala function. Backtracking allowed hai.
     this.agent = { x, y };
     this.visited.add(`${x},${y}`);
-    this.log.push(`Moved to (${x},${y}).`);
+    this.log.push(`(${x},${y}) pe move kr gye.`);
 
     if (this.pits.has(`${x},${y}`)) {
       this.gameOver = true;
-      this.log.push("Fell into a pit! Game Over.");
+      this.log.push("Pit main gir gye! Game Khatam.");
     } else if (this.wumpus.x === x && this.wumpus.y === y) {
       this.gameOver = true;
-      this.log.push("Eaten by the Wumpus! Game Over.");
+      this.log.push("Wumpus kha gya! Game Khatam.");
     } else {
       let percepts = this.getPercepts(x, y);
-      if (percepts.breeze) this.log.push("Felt a breeze.");
-      if (percepts.stench) this.log.push("Smelled a stench.");
+      if (percepts.breeze) this.log.push("Breeze feel ho rhi hai.");
+      if (percepts.stench) this.log.push("Stench (badboo) aa rhi hai.");
     }
     
     // Check win condition: visited all safe cells?

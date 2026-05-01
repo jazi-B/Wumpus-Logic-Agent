@@ -1,8 +1,8 @@
 class LogicEngine {
   constructor(rows, cols) {
-    this.kb = []; // Array of arrays (clauses)
-    this.totalInferenceSteps = 0;
-    this.kbStrings = new Set(); // To prevent duplicate clauses
+    this.kb = []; // Ye hamara knowledge base hai clauses wala
+    this.totalInferenceSteps = 0; // Kitni bar logic resolve hui
+    this.kbStrings = new Set(); // Duplicate clauses se bachne k liye
     
     if (rows && cols) {
       this.initializeGlobalRules(rows, cols);
@@ -10,8 +10,7 @@ class LogicEngine {
   }
 
   initializeGlobalRules(rows, cols) {
-    // "At most one Wumpus" rule:
-    // For every pair of distinct cells A and B, ~W_A V ~W_B
+    // Ye check kr rha hai k wumpus aik he hona chahiye pure grid main
     let cells = [];
     for (let x = 1; x <= cols; x++) {
       for (let y = 1; y <= rows; y++) {
@@ -26,7 +25,7 @@ class LogicEngine {
       }
     }
     
-    // "At least one Wumpus" rule
+    // Aik wumpus lazmi hona chahiye grid main
     let atLeastOne = cells.map(c => `W_${c.x}_${c.y}`);
     this.addClause(atLeastOne);
   }
@@ -45,40 +44,37 @@ class LogicEngine {
     }
   }
 
-  // Tell KB about a visited cell (x,y)
-  // Percepts: breeze (boolean), stench (boolean)
-  // Neighbors: array of {x, y}
-  tell(x, y, breeze, stench, neighbors) {
-    // 1. We are at (x,y), so it's safe!
+  // Cell k bare main KB ko btane wala function
+    // Percepts: breeze, stench waghera
+    tell(x, y, breeze, stench, neighbors) {
+    // Hum is waqt (x,y) pe hain to ye safe hai
     this.addClause([`~P_${x}_${y}`]);
     this.addClause([`~W_${x}_${y}`]);
 
-    // 2. Breeze percept
+    // Breeze percept check
     if (breeze) {
       this.addClause([`B_${x}_${y}`]);
     } else {
       this.addClause([`~B_${x}_${y}`]);
     }
 
-    // 3. Stench percept
+    // Stench percept check
     if (stench) {
       this.addClause([`S_${x}_${y}`]);
     } else {
       this.addClause([`~S_${x}_${y}`]);
     }
 
-    // 4. Add rules for Breeze: B_x_y <=> (P_n1 V P_n2 ...)
-    // B_x_y => (P_n1 V P_n2 ...)  ==> ~B_x_y V P_n1 V P_n2 ...
+    // Breeze k rules add kr rha hoon: B_x_y <=> (P_n1 V P_n2 ...)
     let bClause = [`~B_${x}_${y}`];
     neighbors.forEach(n => bClause.push(`P_${n.x}_${n.y}`));
     this.addClause(bClause);
 
-    // (P_n1 V P_n2 ...) => B_x_y ==> ~P_n1 V B_x_y
     neighbors.forEach(n => {
       this.addClause([`~P_${n.x}_${n.y}`, `B_${x}_${y}`]);
     });
 
-    // 5. Add rules for Stench: S_x_y <=> (W_n1 V W_n2 ...)
+    // Stench k rules: S_x_y <=> (W_n1 V W_n2 ...)
     let sClause = [`~S_${x}_${y}`];
     neighbors.forEach(n => sClause.push(`W_${n.x}_${n.y}`));
     this.addClause(sClause);
@@ -97,7 +93,7 @@ class LogicEngine {
         resolvents.push(newClause);
       }
     }
-    // Filter out tautologies
+    // Faltu tautologies ko filter kr rha hoon
     return resolvents.filter(c => {
       for (let l of c) {
         if (c.includes(this.negate(l))) return false;
@@ -110,24 +106,21 @@ class LogicEngine {
     return [...c].sort().join('|');
   }
 
-  // Use resolution refutation to prove a query (a single literal)
-  // Returns true if query is proven, false otherwise
+  // Resolution refutation se query proof krne wala main function
   ask(queryLiteral) {
     let toProve = this.negate(queryLiteral);
     
-    // Check if it's already a unit clause in KB
+    // Pehle he KB main para hai to return true
     if (this.kbStrings.has(queryLiteral)) return true;
     if (this.kbStrings.has(toProve)) return false;
 
-    // To prove queryLiteral, we negate it and add to KB
+    // Negation add kr k proof start kro
     let clauses = [...this.kb.map(c => [...c]), [toProve]];
     let seen = new Set(clauses.map(c => this.clauseToString(c)));
 
-    // For efficiency, prioritize shorter clauses (unit preference)
-    let limit = 20000; // Lower limit but more efficient iterations
+    let limit = 20000; // Search limit taki browser hang na ho
     let iterations = 0;
 
-    // currentNew: clauses generated in the last iteration
     let currentNew = [[toProve]]; 
 
     while (currentNew.length > 0 && iterations < limit) {
@@ -140,7 +133,7 @@ class LogicEngine {
           
           let res = this.resolve(currentNew[i], clauses[j]);
           for (let r of res) {
-            if (r.length === 0) return true; // Contradiction found! Empty clause
+            if (r.length === 0) return true; // Contradiction mil gai! Empty clause
             
             let rStr = this.clauseToString(r);
             if (!seen.has(rStr)) {
@@ -153,17 +146,17 @@ class LogicEngine {
         if (iterations > limit) break;
       }
 
-      // Unit preference: sort toAdd by length to resolve shorter ones first
+      // Short clauses ko pehle resolve krna hai (Unit Preference)
       toAdd.sort((a, b) => a.length - b.length);
       
       clauses.push(...toAdd);
       currentNew = toAdd;
     }
 
-    return false; // Not proven
+    return false; // Proof nhi ho saka
   }
 
-  // A cell is safe if we can prove ~P_x_y AND ~W_x_y
+  // Check kr rha hoon k (x,y) safe hai ya nhi
   isSafe(x, y) {
     let pSafe = this.ask(`~P_${x}_${y}`);
     let wSafe = this.ask(`~W_${x}_${y}`);

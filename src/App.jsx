@@ -42,7 +42,7 @@ const App = () => {
     const newEngine = new LogicEngine(rows, cols);
     setWorld(newWorld);
     setEngine(newEngine);
-    setLogs(["Game initialized. Agent at (1,1)."]);
+    setLogs(["Game initialize hogya. Agent (1,1) pe hai."]);
     setKbState([]);
     setInferenceSteps(0);
     setInferences({});
@@ -57,6 +57,7 @@ const App = () => {
   };
 
   const evaluateFrontier = (currentWorld, currentEngine) => {
+    // Ye check kr rha hai k visited cells k neighbors main kon kon se cells frontier pe hain
     let frontier = new Set();
     currentWorld.visited.forEach(v => {
       let [vx, vy] = v.split(',').map(Number);
@@ -72,6 +73,7 @@ const App = () => {
     let newInfs = {};
     frontier.forEach(f => {
       let [fx, fy] = f.split(',').map(Number);
+      // Resolution engine se puch rhe hain k cell safe hai ya nhi
       let isSafe = currentEngine.isSafe(fx, fy);
       if (isSafe) {
         newInfs[f] = 'safe';
@@ -97,6 +99,7 @@ const App = () => {
     
     let target = null;
     if (safeCells.length > 0) {
+      // Pehle adjacent safe cells check kro
       let adjacent = safeCells.find(c => {
         let [cx, cy] = c.split(',').map(Number);
         return Math.abs(world.agent.x - cx) + Math.abs(world.agent.y - cy) === 1;
@@ -107,7 +110,7 @@ const App = () => {
         target = safeCells[0].split(',').map(Number);
       }
     } else {
-      setLogs(prev => [...prev, "No guaranteed safe cells left to explore! Agent halts."]);
+      setLogs(prev => [...prev, "Koi safe cell nhi bacha! Agent ruk gaya."]);
       setAutoPlay(false);
       return;
     }
@@ -239,7 +242,7 @@ const App = () => {
         </div>
 
         <div className="sidebar">
-          {/* Metrics Dashboard */}
+          {/* Dashboard Panel */}
           <div className="panel metrics-panel">
             <div className="panel-header">
               <span>Real-Time Metrics Dashboard</span>
